@@ -32,7 +32,18 @@ This part should be straight forward, all best practices related to bucket creat
 
 6. Once review is completed, click on "Create policy" button and the policy will be created and enabled.
 
-
 ## Part 3. EventBridge Rules
+### Rule 1: Trigger Store AMI to S3
+Event pattern:
+{
+  "source": ["aws.ec2"],
+  "detail-type": ["EC2 AMI State Change"],
+  "detail": {
+    "State": ["available"]
+  }
+}
+
+### Rule 2: Trigger Cleanup AMI
+
 ## Part 4. Lambda Function - Store AMI to S3
 ## Part 5. Lambda Function - Cleanup AMI
