@@ -13,24 +13,25 @@ Automate AMI creation using ECS Lifecyle Management + Lambda + S3
 This part should be straight forward, all best practices related to bucket creation are implicitly applied, such as: enable encryption, set bucket and objects are not public.
 
 1. Create new dedicated S3 bucket
-2. To automate cleanup AMI process once AMI successfully stored in S3, we need to enable bucket notification to AWS EventBridge
-<img width="1119" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/a8e9830d-4fd8-411a-9744-23d28a5c018c">
+2. To automate cleanup AMI process once AMI successfully stored in S3, we need to enable bucket notification to AWS EventBridge (Under "bucket properties" menu)
+<img width="1128" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/2aea8c56-2ff1-4bda-b5e0-78e6cdaa3d1e">
 3. Later, we will create new rule in EventBridge to make use of this notification to trigger a Lambda function for AMI cleanup process.
 
 <br><br>
 ## Part 2. EBS Lifecycle Management
-1. Got to EC2 management console and under Elastic Block Store sub-menu, choose "Lifecycle Manager"
-<img width="1472" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/0d27b87c-36fa-4c6e-87d0-865d8cbb1496">
+1. Go to EC2 management console and under Elastic Block Store sub-menu, choose "Lifecycle Manager"
+<img width="1470" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/1b03e04e-dfe8-41d9-91aa-d4fbf90ecc0f">
+
 
 2. Click on "Create lifecyle policy" button
 3. Choose "EBS-backed AMI policy" as policy type and click on "Next" button
-<img width="811" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/ce70be74-5581-4676-947c-8e5aca3eae59">
+<img width="824" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/11b2b7bf-937d-4a2b-b300-5df411e12b91">
 
 4. Configure tag to identify resources that would be marked as part of this policy
-<img width="1103" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/ee19a88d-a525-4b1e-8f93-c5b961143de7">
+<img width="1105" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/77685621-3b5d-4cda-b82c-bc8db183a041">
 
 5. Configure new schedule for weekly AMI backup, adjust configurations accordingly, and click on "Review policy" button
-<img width="1109" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/35c14aaf-bf04-446e-b4a9-9de25b11f96b">
+<img width="1128" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/93885963-39f9-4905-81ce-5b31ca7d10b9">
 
 6. Once review is completed, click on "Create policy" button and the policy will be created and enabled.
 
@@ -96,16 +97,16 @@ This part should be straight forward, all best practices related to bucket creat
     ]
 }
 ```
-<img width="1438" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/f6ccd657-1773-489b-8cef-fc942a70cb03">
+<img width="1353" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/4604fef7-f688-43ad-a45f-960fd44a29bf">
 
 4. Click "Next" button, search newly created policy "PolicyForLambdaBackupAMI"
 5. Select the policy and click on next button. Put an appropriate name (For Example: "LambdaRoleBackupAMI") and click "Create" button
-<img width="1467" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/ce8f8de1-3834-4f3c-84a4-8b2743569e41">
+<img width="1397" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/90b1b68f-77be-4f20-9b2d-47a478630e9e">
 
 <br><br>
 ## Part 4. Lambda Functions
 Make sure to configure runtime to use Python 3.10 on x86_64 and choose execution role to use the newly created role in Part 3
-<img width="1101" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/7dde8f58-a3be-4883-a610-1776d6fb41bb">
+<img width="1089" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/c69478b4-f31a-4bbf-aa06-a779d696a031">
 
 ### Store AMI to S3
 Code:
@@ -233,7 +234,7 @@ def lambda_handler(event, context):
 <br><br>
 ## Part 5. EventBridge Rules
 Create following rules in EventBridge console (Under "Buses" menu):
-<img width="1442" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/0d62e729-9ffe-4db4-aa19-48876e1f8db5">
+<img width="1442" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/a1b76127-7fb5-48f7-b31c-034e7cb0a0d1">
 
 ### Rule 1: Trigger Store AMI to S3
 1. Create new rules with following event pattern:
@@ -246,10 +247,11 @@ Create following rules in EventBridge console (Under "Buses" menu):
   }
 }
 ```
-<img width="819" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/f73e17d9-e622-4a67-8442-da4726c200f0">
+<img width="838" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/597ccc7c-3320-4890-82b6-6a1fa0ed287f">
 
 2. Click "Next" button and select target as Lambda function
-<img width="1134" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/07ff4c9a-a8a0-4dde-9135-38a4b4aa693c">
+<img width="1108" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/94f4a8d5-4437-45b5-b0b5-99425db57109">
+
 3. Click "Next", then Review and click on "Create rule"
 
 ### Rule 2: Trigger Cleanup AMI
@@ -265,8 +267,9 @@ Create following rules in EventBridge console (Under "Buses" menu):
   }
 }
 ```
-<img width="819" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/7eb5bc41-45b1-4d81-892e-2cd76c5fc4c5">
+<img width="810" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/176cf6d7-3371-4926-815f-3dfd4c97cecc">
 
 2. Click "Next" button and select target as Lambda function
-<img width="1105" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/991c3bef-b9e9-4ba9-8c3e-df4cb8aa4a17">
+<img width="1095" alt="image" src="https://github.com/ardyantika/automate-ami-backup/assets/4241098/6367df03-5fc0-439f-874e-a25814c03299">
+
 3. Click "Next", then Review and click on "Create rule"
