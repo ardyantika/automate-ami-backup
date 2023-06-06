@@ -2,7 +2,7 @@
 Automate AMI creation using ECS Lifecyle Management + Lambda + S3
 <br><br>
 ## High-level Steps
-1. [Create a dedicated S3 bucket to store AMI, make sure to enable EventBridge notification in the bucket](https://github.com/ardyantika/automate-ami-backup/edit/main/README.md#part-1-s3-preparation)
+1. [Create a dedicated S3 bucket to store AMI, make sure to enable EventBridge notification in the bucket](https://github.com/ardyantika/automate-ami-backup/blob/main/README.md#part-1-s3-preparation)
 2. Create a new lifecyle policy in EBS to automate AMI creation
 3. Create a new policy and role for Lambda
 4. Develop 2 Lambda functions for: 1) migrate/store AMI to S3 and 2) cleanup AMI + related snapshot (once AMI successfully stored in S3)
