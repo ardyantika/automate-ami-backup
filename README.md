@@ -130,29 +130,59 @@ def lambda_handler(event, context):
 
   logger.info("Image ID: %s", ImageId)
   logger.info("Bucket Name: %s", BucketName)
-    
-  # Create Store AMI task to S3
-  try:
-    response = client.create_store_image_task(
-      ImageId=ImageId,
-      Bucket=BucketName
-    );
-    ObjectKey = response["ObjectKey"]
 
-    return {
-      "ImageId": ImageId,
-      "BucketName": BucketName,
-      "ObjectKey": ObjectKey
-    }
-  except ClientError as err:
-    logger.exception("Couldn't create store AMI task for: %s", ImageId)
-    
-    raise
-    return {
-      "Status": "error",
-      "ImageId": ImageId,
-      "BucketName": BucketName
-    }
+  # Describe tags - to validate backup tag is exists
+  response = client.describe_tags(
+      Filters=[
+          {
+              'Name': 'resource-id',
+              'Values': [
+                  ImageId,
+              ],
+          },
+          {
+              'Name': 'key',
+              'Values': [
+                  'ami-backup',
+              ],
+          },
+          {
+              'Name': 'value',
+              'Values': [
+                  'true',
+              ],
+          },
+      ],
+  )
+  print(response)
+  
+  # Check if backup tags is exists 
+  if len(response["Tags"]) > 0: 
+    # Create Store AMI task to S3
+    try:
+      response = client.create_store_image_task(
+        ImageId=ImageId,
+        Bucket=BucketName
+      );
+      ObjectKey = response["ObjectKey"]
+      
+      logger.info("Successfully create store AMI task for: %s", ImageId)
+      return {
+        "ImageId": ImageId,
+        "BucketName": BucketName,
+        "ObjectKey": ObjectKey
+      }
+    except ClientError as err:
+      logger.exception("Couldn't create store AMI task for: %s", ImageId)
+      
+      raise
+      return {
+        "Status": "error",
+        "ImageId": ImageId,
+        "BucketName": BucketName
+      }
+  else:
+    logger.info("Skip create store AMI task for: %s | Not for scheduled backup", ImageId)
 ```
 
 ### Cleanup AMI
